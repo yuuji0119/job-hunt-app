@@ -1,15 +1,24 @@
 type Props = {
+  id: string;
   companyName: string;
   status: string;
   deadline: string | null;
   onDelete: () => void;
+  onUpdate: (
+    id: string,
+    companyName: string,
+    status: string,
+    deadline: string
+  ) => void;
 };
 
 export default function CompanyCard({
+  id,
   companyName,
   status,
   deadline,
   onDelete,
+  onUpdate,
 }: Props) {
   const getStatusColor = (status: string) => {
     if (status === "未応募") return "bg-gray-200 text-gray-800";
@@ -21,17 +30,91 @@ export default function CompanyCard({
     return "bg-gray-100 text-gray-800";
   };
 
+  const getRemainingDays = () => {
+    if (!deadline) return null;
+
+    const today = new Date();
+    const deadlineDate = new Date(deadline);
+
+    today.setHours(0, 0, 0, 0);
+    deadlineDate.setHours(0, 0, 0, 0);
+
+    const diffTime = deadlineDate.getTime() - today.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  const remainingDays = getRemainingDays();
+
+  const getDeadlineColor = () => {
+    if (remainingDays === null) return "text-gray-700";
+    if (remainingDays <= 3) return "text-red-600 font-bold";
+    if (remainingDays <= 7) return "text-yellow-600 font-bold";
+    return "text-gray-700";
+  };
+
+  const getCardBorder = () => {
+    if (remainingDays === null) return "border";
+    if (remainingDays <= 3) return "border-2 border-red-500";
+    if (remainingDays <= 7) return "border-2 border-yellow-500";
+    return "border";
+  };
+
   return (
-    <div className="border rounded-xl p-4 mt-4">
-      <h2 className="text-2xl font-bold">{companyName}</h2>
+    <div className={`${getCardBorder()} rounded-xl p-4 mt-4`}>
+      <input
+        className="text-2xl font-bold border p-2 w-full"
+        value={companyName}
+        onChange={(e) =>
+          onUpdate(id, e.target.value, status, deadline ?? "")
+        }
+      />
 
-      <span className={`inline-block mt-2 px-3 py-1 rounded-full text-sm ${getStatusColor(status)}`}>
-        {status}
-      </span>
+      <select
+        className={`mt-3 border p-2 rounded ${getStatusColor(status)}`}
+        value={status}
+        onChange={(e) =>
+          onUpdate(id, companyName, e.target.value, deadline ?? "")
+        }
+      >
+        <option value="未応募">未応募</option>
+        <option value="ES提出">ES提出</option>
+        <option value="一次面接">一次面接</option>
+        <option value="最終面接">最終面接</option>
+        <option value="内定">内定</option>
+        <option value="落選">落選</option>
+      </select>
 
-      <p className="mt-3">
-        締切日：{deadline ? deadline : "未設定"}
-      </p>
+      <div className="mt-3">
+        <span className={getDeadlineColor()}>締切日：</span>
+        <input
+          className="border p-2 ml-2"
+          type="date"
+          value={deadline ?? ""}
+          onChange={(e) =>
+            onUpdate(id, companyName, status, e.target.value)
+          }
+        />
+      </div>
+
+      {remainingDays !== null && (
+        <p className={`mt-2 ${getDeadlineColor()}`}>
+          残り{remainingDays}日
+        </p>
+      )}
+
+      {remainingDays !== null && remainingDays <= 3 && (
+        <p className="mt-2 text-red-600 font-bold">
+          3日以内です
+        </p>
+      )}
+
+      {remainingDays !== null &&
+        remainingDays > 3 &&
+        remainingDays <= 7 && (
+          <p className="mt-2 text-yellow-600 font-bold">
+            7日以内です
+          </p>
+        )}
 
       <button
         className="mt-4 bg-red-500 text-white px-4 py-2 rounded"

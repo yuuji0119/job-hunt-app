@@ -3,35 +3,107 @@
 import { useEffect, useState } from "react";
 import CompanyCard from "./components/CompanyCard";
 import { supabase } from "../lib/supabase";
+import type { User } from "@supabase/supabase-js";
 
 type Company = {
   id: string;
   company_name: string;
   status: string;
   deadline: string | null;
+  user_id: string | null;
 };
 
 export default function Home() {
+  const [user, setUser] = useState<User | null>(null);
   const [companies, setCompanies] = useState<Company[]>([]);
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
   const [companyName, setCompanyName] = useState("");
   const [status, setStatus] = useState("未応募");
   const [deadline, setDeadline] = useState("");
 
-  const fetchCompanies = async () => {
-    const { data, error } = await supabase
-      .from("companies")
-      .select("*")
-      .order("created_at", { ascending: false });
+  const fetchUser = async () => {
+    const { data } = await supabase.auth.getUser();
+    setUser(data.user);
+  };
 
-    if (error) {
-      console.error(error);
+  const fetchCompanies = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setCompanies([]);
       return;
     }
 
-    setCompanies(data);
+    const { data, error } = await supabase
+      .from("companies")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("deadline", { ascending: true });
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setCompanies(data ?? []);
+  };
+
+  const signUp = async () => {
+    if (email === "" || password === "") {
+      alert("メールアドレスとパスワードを入力してください");
+      return;
+    }
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    alert("登録しました。確認メールが届いた場合は確認してください。");
+  };
+
+  const signIn = async () => {
+    if (email === "" || password === "") {
+      alert("メールアドレスとパスワードを入力してください");
+      return;
+    }
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setUser(data.user);
+    fetchCompanies();
+  };
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setCompanies([]);
   };
 
   const addCompany = async () => {
+    if (!user) {
+      alert("ログインしてください");
+      return;
+    }
+
     if (companyName === "") {
       alert("企業名を入力してください");
       return;
@@ -41,11 +113,11 @@ export default function Home() {
       company_name: companyName,
       status: status,
       deadline: deadline === "" ? null : deadline,
+      user_id: user.id,
     });
 
     if (error) {
-      console.error(error);
-      alert("保存失敗");
+      alert(error.message);
       return;
     }
 
@@ -62,8 +134,30 @@ export default function Home() {
       .eq("id", id);
 
     if (error) {
-      console.error(error);
-      alert("削除失敗");
+      alert(error.message);
+      return;
+    }
+
+    fetchCompanies();
+  };
+
+  const updateCompany = async (
+    id: string,
+    companyName: string,
+    status: string,
+    deadline: string
+  ) => {
+    const { error } = await supabase
+      .from("companies")
+      .update({
+        company_name: companyName,
+        status: status,
+        deadline: deadline === "" ? null : deadline,
+      })
+      .eq("id", id);
+
+    if (error) {
+      alert(error.message);
       return;
     }
 
@@ -71,12 +165,89 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchCompanies();
+    fetchUser();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+
+      if (session?.user) {
+        fetchCompanies();
+      } else {
+        setCompanies([]);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      fetchCompanies();
+    }
+  }, [user]);
+
+  if (!user) {
+    return (
+      <div className="p-10">
+        <h1 className="text-4xl font-bold">就活管理アプリ</h1>
+
+        <div className="mt-6 border rounded-xl p-4 max-w-md">
+          <h2 className="text-2xl font-bold mb-4">ログイン</h2>
+
+          <input
+            className="border p-2 w-full mb-3"
+            type="email"
+            placeholder="メールアドレス"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+
+          <input
+            className="border p-2 w-full mb-3"
+            type="password"
+            placeholder="パスワード"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+
+          <button
+            className="border px-4 py-2 rounded mr-2"
+            onClick={signIn}
+          >
+            ログイン
+          </button>
+
+          <button
+            className="border px-4 py-2 rounded"
+            onClick={signUp}
+          >
+            新規登録
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-10">
-      <h1 className="text-4xl font-bold">就活管理アプリ</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-4xl font-bold">就活管理アプリ</h1>
+
+        <button
+          className="border px-4 py-2 rounded"
+          onClick={signOut}
+        >
+          ログアウト
+        </button>
+      </div>
+
+      <p className="mt-2 text-sm text-gray-600">
+        ログイン中：{user.email}
+      </p>
 
       <div className="mt-6 border rounded-xl p-4">
         <h2 className="text-2xl font-bold mb-4">企業追加</h2>
@@ -120,10 +291,12 @@ export default function Home() {
         {companies.map((company) => (
           <CompanyCard
             key={company.id}
+            id={company.id}
             companyName={company.company_name}
             status={company.status}
             deadline={company.deadline}
             onDelete={() => deleteCompany(company.id)}
+            onUpdate={updateCompany}
           />
         ))}
       </div>
