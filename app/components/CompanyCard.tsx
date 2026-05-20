@@ -3,12 +3,14 @@ type Props = {
   companyName: string;
   status: string;
   deadline: string | null;
+  mypageUrl: string | null;
   onDelete: () => void;
   onUpdate: (
     id: string,
     companyName: string,
     status: string,
-    deadline: string
+    deadline: string,
+    mypageUrl: string
   ) => void;
 };
 
@@ -17,6 +19,7 @@ export default function CompanyCard({
   companyName,
   status,
   deadline,
+  mypageUrl,
   onDelete,
   onUpdate,
 }: Props) {
@@ -65,7 +68,7 @@ export default function CompanyCard({
         className="text-2xl font-bold border p-2 w-full"
         value={companyName}
         onChange={(e) =>
-          onUpdate(id, e.target.value, status, deadline ?? "")
+          onUpdate(id, e.target.value, status, deadline ?? "", mypageUrl ?? "")
         }
       />
 
@@ -73,7 +76,7 @@ export default function CompanyCard({
         className={`mt-3 border p-2 rounded ${getStatusColor(status)}`}
         value={status}
         onChange={(e) =>
-          onUpdate(id, companyName, e.target.value, deadline ?? "")
+          onUpdate(id, companyName, e.target.value, deadline ?? "", mypageUrl ?? "")
         }
       >
         <option value="未応募">未応募</option>
@@ -91,7 +94,18 @@ export default function CompanyCard({
           type="date"
           value={deadline ?? ""}
           onChange={(e) =>
-            onUpdate(id, companyName, status, e.target.value)
+            onUpdate(id, companyName, status, e.target.value, mypageUrl ?? "")
+          }
+        />
+      </div>
+
+      <div className="mt-3">
+        <input
+          className="border p-2 w-full"
+          placeholder="企業マイページURL"
+          value={mypageUrl ?? ""}
+          onChange={(e) =>
+            onUpdate(id, companyName, status, deadline ?? "", e.target.value)
           }
         />
       </div>
@@ -103,25 +117,34 @@ export default function CompanyCard({
       )}
 
       {remainingDays !== null && remainingDays <= 3 && (
-        <p className="mt-2 text-red-600 font-bold">
-          3日以内です
-        </p>
+        <p className="mt-2 text-red-600 font-bold">3日以内です</p>
       )}
 
       {remainingDays !== null &&
         remainingDays > 3 &&
         remainingDays <= 7 && (
-          <p className="mt-2 text-yellow-600 font-bold">
-            7日以内です
-          </p>
+          <p className="mt-2 text-yellow-600 font-bold">7日以内です</p>
         )}
 
-      <button
-        className="mt-4 bg-red-500 text-white px-4 py-2 rounded"
-        onClick={onDelete}
-      >
-        削除
-      </button>
+      <div className="mt-4 flex gap-2">
+        {mypageUrl && (
+          <a
+            href={mypageUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-blue-500 text-white px-4 py-2 rounded"
+          >
+            マイページ
+          </a>
+        )}
+
+        <button
+          className="bg-red-500 text-white px-4 py-2 rounded"
+          onClick={onDelete}
+        >
+          削除
+        </button>
+      </div>
     </div>
   );
 }

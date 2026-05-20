@@ -11,6 +11,7 @@ type Company = {
   status: string;
   deadline: string | null;
   user_id: string | null;
+  mypage_url: string | null;
 };
 
 export default function Home() {
@@ -23,11 +24,7 @@ export default function Home() {
   const [companyName, setCompanyName] = useState("");
   const [status, setStatus] = useState("未応募");
   const [deadline, setDeadline] = useState("");
-
-  const fetchUser = async () => {
-    const { data } = await supabase.auth.getUser();
-    setUser(data.user);
-  };
+  const [mypageUrl, setMypageUrl] = useState("");
 
   const fetchCompanies = async () => {
     const {
@@ -114,6 +111,7 @@ export default function Home() {
       status: status,
       deadline: deadline === "" ? null : deadline,
       user_id: user.id,
+      mypage_url: mypageUrl === "" ? null : mypageUrl,
     });
 
     if (error) {
@@ -124,6 +122,7 @@ export default function Home() {
     setCompanyName("");
     setStatus("未応募");
     setDeadline("");
+    setMypageUrl("");
     fetchCompanies();
   };
 
@@ -145,7 +144,8 @@ export default function Home() {
     id: string,
     companyName: string,
     status: string,
-    deadline: string
+    deadline: string,
+    mypageUrl: string
   ) => {
     const { error } = await supabase
       .from("companies")
@@ -153,6 +153,7 @@ export default function Home() {
         company_name: companyName,
         status: status,
         deadline: deadline === "" ? null : deadline,
+        mypage_url: mypageUrl === "" ? null : mypageUrl,
       })
       .eq("id", id);
 
@@ -165,7 +166,9 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchUser();
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+    });
 
     const {
       data: { subscription },
@@ -279,6 +282,13 @@ export default function Home() {
           onChange={(e) => setDeadline(e.target.value)}
         />
 
+        <input
+          className="border p-2 mr-2 mt-2"
+          placeholder="企業マイページURL"
+          value={mypageUrl}
+          onChange={(e) => setMypageUrl(e.target.value)}
+        />
+
         <button
           className="border px-4 py-2 rounded"
           onClick={addCompany}
@@ -295,6 +305,7 @@ export default function Home() {
             companyName={company.company_name}
             status={company.status}
             deadline={company.deadline}
+            mypageUrl={company.mypage_url}
             onDelete={() => deleteCompany(company.id)}
             onUpdate={updateCompany}
           />
