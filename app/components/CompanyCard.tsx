@@ -4,13 +4,19 @@ type Props = {
   status: string;
   deadline: string | null;
   mypageUrl: string | null;
+  loginId: string | null;
+  loginPassword: string | null;
+  memo: string | null;
   onDelete: () => void;
   onUpdate: (
     id: string,
     companyName: string,
     status: string,
     deadline: string,
-    mypageUrl: string
+    mypageUrl: string,
+    loginId: string,
+    loginPassword: string,
+    memo: string
   ) => void;
 };
 
@@ -20,19 +26,12 @@ export default function CompanyCard({
   status,
   deadline,
   mypageUrl,
+  loginId,
+  loginPassword,
+  memo,
   onDelete,
   onUpdate,
 }: Props) {
-  const getStatusColor = (status: string) => {
-    if (status === "未応募") return "bg-gray-200 text-gray-800";
-    if (status === "ES提出") return "bg-blue-100 text-blue-800";
-    if (status === "一次面接") return "bg-green-100 text-green-800";
-    if (status === "最終面接") return "bg-purple-100 text-purple-800";
-    if (status === "内定") return "bg-yellow-100 text-yellow-800";
-    if (status === "落選") return "bg-red-100 text-red-800";
-    return "bg-gray-100 text-gray-800";
-  };
-
   const getRemainingDays = () => {
     if (!deadline) return null;
 
@@ -68,15 +67,33 @@ export default function CompanyCard({
         className="text-2xl font-bold border p-2 w-full"
         value={companyName}
         onChange={(e) =>
-          onUpdate(id, e.target.value, status, deadline ?? "", mypageUrl ?? "")
+          onUpdate(
+            id,
+            e.target.value,
+            status,
+            deadline ?? "",
+            mypageUrl ?? "",
+            loginId ?? "",
+            loginPassword ?? "",
+            memo ?? ""
+          )
         }
       />
 
       <select
-        className={`mt-3 border p-2 rounded ${getStatusColor(status)}`}
+        className="mt-3 border p-2 rounded"
         value={status}
         onChange={(e) =>
-          onUpdate(id, companyName, e.target.value, deadline ?? "", mypageUrl ?? "")
+          onUpdate(
+            id,
+            companyName,
+            e.target.value,
+            deadline ?? "",
+            mypageUrl ?? "",
+            loginId ?? "",
+            loginPassword ?? "",
+            memo ?? ""
+          )
         }
       >
         <option value="未応募">未応募</option>
@@ -87,28 +104,23 @@ export default function CompanyCard({
         <option value="落選">落選</option>
       </select>
 
-      <div className="mt-3">
-        <span className={getDeadlineColor()}>締切日：</span>
-        <input
-          className="border p-2 ml-2"
-          type="date"
-          value={deadline ?? ""}
-          onChange={(e) =>
-            onUpdate(id, companyName, status, e.target.value, mypageUrl ?? "")
-          }
-        />
-      </div>
-
-      <div className="mt-3">
-        <input
-          className="border p-2 w-full"
-          placeholder="企業マイページURL"
-          value={mypageUrl ?? ""}
-          onChange={(e) =>
-            onUpdate(id, companyName, status, deadline ?? "", e.target.value)
-          }
-        />
-      </div>
+      <input
+        className={`border p-2 w-full mt-3 ${getDeadlineColor()}`}
+        type="date"
+        value={deadline ?? ""}
+        onChange={(e) =>
+          onUpdate(
+            id,
+            companyName,
+            status,
+            e.target.value,
+            mypageUrl ?? "",
+            loginId ?? "",
+            loginPassword ?? "",
+            memo ?? ""
+          )
+        }
+      />
 
       {remainingDays !== null && (
         <p className={`mt-2 ${getDeadlineColor()}`}>
@@ -117,14 +129,91 @@ export default function CompanyCard({
       )}
 
       {remainingDays !== null && remainingDays <= 3 && (
-        <p className="mt-2 text-red-600 font-bold">3日以内です</p>
+        <p className="mt-2 text-red-600 font-bold">
+          3日以内です
+        </p>
       )}
 
       {remainingDays !== null &&
         remainingDays > 3 &&
         remainingDays <= 7 && (
-          <p className="mt-2 text-yellow-600 font-bold">7日以内です</p>
+          <p className="mt-2 text-yellow-600 font-bold">
+            7日以内です
+          </p>
         )}
+
+      <input
+        className="border p-2 w-full mt-3"
+        placeholder="企業マイページURL"
+        value={mypageUrl ?? ""}
+        onChange={(e) =>
+          onUpdate(
+            id,
+            companyName,
+            status,
+            deadline ?? "",
+            e.target.value,
+            loginId ?? "",
+            loginPassword ?? "",
+            memo ?? ""
+          )
+        }
+      />
+
+      <input
+        className="border p-2 w-full mt-3"
+        placeholder="ログインID"
+        value={loginId ?? ""}
+        onChange={(e) =>
+          onUpdate(
+            id,
+            companyName,
+            status,
+            deadline ?? "",
+            mypageUrl ?? "",
+            e.target.value,
+            loginPassword ?? "",
+            memo ?? ""
+          )
+        }
+      />
+
+      <input
+        className="border p-2 w-full mt-3"
+        type="password"
+        placeholder="パスワード"
+        value={loginPassword ?? ""}
+        onChange={(e) =>
+          onUpdate(
+            id,
+            companyName,
+            status,
+            deadline ?? "",
+            mypageUrl ?? "",
+            loginId ?? "",
+            e.target.value,
+            memo ?? ""
+          )
+        }
+      />
+
+      <textarea
+        className="border p-2 w-full mt-3"
+        placeholder="メモ"
+        value={memo ?? ""}
+        onChange={(e) =>
+          onUpdate(
+            id,
+            companyName,
+            status,
+            deadline ?? "",
+            mypageUrl ?? "",
+            loginId ?? "",
+            loginPassword ?? "",
+            e.target.value
+          )
+        }
+      />
 
       <div className="mt-4 flex gap-2">
         {mypageUrl && (

@@ -6,12 +6,15 @@ import { supabase } from "../lib/supabase";
 import type { User } from "@supabase/supabase-js";
 
 type Company = {
-  id: string;
+ id: string;
   company_name: string;
   status: string;
   deadline: string | null;
   user_id: string | null;
   mypage_url: string | null;
+  login_id: string | null;
+  login_password: string | null;
+  memo: string | null;
 };
 
 export default function Home() {
@@ -306,6 +309,9 @@ export default function Home() {
             status={company.status}
             deadline={company.deadline}
             mypageUrl={company.mypage_url}
+            loginId={company.login_id}
+            loginPassword={company.login_password}
+            memo={company.memo}
             onDelete={() => deleteCompany(company.id)}
             onUpdate={updateCompany}
           />
