@@ -1,35 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 就活管理アプリ
 
-## Getting Started
+## 概要
 
-First, run the development server:
+就職活動で応募企業や選考状況、締切日を一元管理するWebアプリです。
+ユーザー認証機能を実装し、ログインしたユーザーごとにデータを管理できる構成にしています。
+企業情報だけでなく、企業マイページURLやログイン情報、メモなども管理でき、就職活動の進捗整理や締切管理を効率化することを目的として開発しました。
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 使用技術
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+* Next.js
+* TypeScript
+* Supabase
+* Tailwind CSS
+* Git / GitHub
+* Vercel
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 機能
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+* ユーザー認証（新規登録 / ログイン / ログアウト）
+* 企業登録
+* 選考ステータス管理
+* 締切日管理
+* 締切日の近い順ソート
+* 締切警告表示
 
-## Learn More
+  * 3日以内：赤
+  * 7日以内：黄
+* 企業情報編集
+* 企業情報削除
+* 企業マイページURL管理
+* 企業ログインID管理
+* パスワード管理
+* メモ機能
+* 企業マイページへの直接遷移
 
-To learn more about Next.js, take a look at the following resources:
+## 工夫点
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+* Supabase Authentication を利用した認証機能を実装
+* Row Level Security（RLS）を利用し、ユーザーごとにデータを分離
+* CRUD（Create / Read / Update / Delete）機能を実装
+* 締切日に応じて警告色や枠線を変更し視認性を向上
+* 企業マイページURLから直接アクセスできるようにして操作回数を削減
+* Git/GitHub を利用した共同開発・バージョン管理を実施
+* Vercel を利用してデプロイし公開環境を構築
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 今後追加予定
 
-## Deploy on Vercel
+* カレンダー表示機能
+* メール通知機能
+* 企業検索機能
+* 選考進捗グラフ表示
+* Googleログイン対応
+* 通知機能
+
+## 公開URL
+
+https://job-hunt-app-livid.vercel.app
+
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
