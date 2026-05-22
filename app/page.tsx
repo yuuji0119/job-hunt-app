@@ -6,7 +6,7 @@ import { supabase } from "../lib/supabase";
 import type { User } from "@supabase/supabase-js";
 
 type Company = {
- id: string;
+  id: string;
   company_name: string;
   status: string;
   deadline: string | null;
@@ -28,6 +28,9 @@ export default function Home() {
   const [status, setStatus] = useState("未応募");
   const [deadline, setDeadline] = useState("");
   const [mypageUrl, setMypageUrl] = useState("");
+  const [loginId, setLoginId] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [memo, setMemo] = useState("");
 
   const fetchCompanies = async () => {
     const {
@@ -43,7 +46,7 @@ export default function Home() {
       .from("companies")
       .select("*")
       .eq("user_id", user.id)
-      .order("deadline", { ascending: true });
+      .order("deadline", { ascending: true, nullsFirst: false });
 
     if (error) {
       alert(error.message);
@@ -59,10 +62,7 @@ export default function Home() {
       return;
     }
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+    const { error } = await supabase.auth.signUp({ email, password });
 
     if (error) {
       alert(error.message);
@@ -111,10 +111,13 @@ export default function Home() {
 
     const { error } = await supabase.from("companies").insert({
       company_name: companyName,
-      status: status,
+      status,
       deadline: deadline === "" ? null : deadline,
       user_id: user.id,
       mypage_url: mypageUrl === "" ? null : mypageUrl,
+      login_id: loginId === "" ? null : loginId,
+      login_password: loginPassword === "" ? null : loginPassword,
+      memo: memo === "" ? null : memo,
     });
 
     if (error) {
@@ -126,14 +129,15 @@ export default function Home() {
     setStatus("未応募");
     setDeadline("");
     setMypageUrl("");
+    setLoginId("");
+    setLoginPassword("");
+    setMemo("");
+
     fetchCompanies();
   };
 
   const deleteCompany = async (id: string) => {
-    const { error } = await supabase
-      .from("companies")
-      .delete()
-      .eq("id", id);
+    const { error } = await supabase.from("companies").delete().eq("id", id);
 
     if (error) {
       alert(error.message);
@@ -148,15 +152,21 @@ export default function Home() {
     companyName: string,
     status: string,
     deadline: string,
-    mypageUrl: string
+    mypageUrl: string,
+    loginId: string,
+    loginPassword: string,
+    memo: string
   ) => {
     const { error } = await supabase
       .from("companies")
       .update({
         company_name: companyName,
-        status: status,
+        status,
         deadline: deadline === "" ? null : deadline,
         mypage_url: mypageUrl === "" ? null : mypageUrl,
+        login_id: loginId === "" ? null : loginId,
+        login_password: loginPassword === "" ? null : loginPassword,
+        memo: memo === "" ? null : memo,
       })
       .eq("id", id);
 
@@ -220,17 +230,11 @@ export default function Home() {
             onChange={(e) => setPassword(e.target.value)}
           />
 
-          <button
-            className="border px-4 py-2 rounded mr-2"
-            onClick={signIn}
-          >
+          <button className="border px-4 py-2 rounded mr-2" onClick={signIn}>
             ログイン
           </button>
 
-          <button
-            className="border px-4 py-2 rounded"
-            onClick={signUp}
-          >
+          <button className="border px-4 py-2 rounded" onClick={signUp}>
             新規登録
           </button>
         </div>
@@ -239,68 +243,89 @@ export default function Home() {
   }
 
   return (
-    <div className="p-10">
-      <div className="flex justify-between items-center">
-        <h1 className="text-4xl font-bold">就活管理アプリ</h1>
+    <main className="p-6 md:p-10 max-w-7xl mx-auto overflow-x-hidden">
+      <div className="flex justify-between items-center gap-4">
+        <div>
+          <h1 className="text-4xl font-bold">就活管理アプリ</h1>
+          <p className="mt-2 text-sm text-gray-600">
+            ログイン中：{user.email}
+          </p>
+        </div>
 
-        <button
-          className="border px-4 py-2 rounded"
-          onClick={signOut}
-        >
+        <button className="border px-4 py-2 rounded" onClick={signOut}>
           ログアウト
         </button>
       </div>
 
-      <p className="mt-2 text-sm text-gray-600">
-        ログイン中：{user.email}
-      </p>
-
-      <div className="mt-6 border rounded-xl p-4">
+      <section className="mt-6 border rounded-xl p-4">
         <h2 className="text-2xl font-bold mb-4">企業追加</h2>
 
-        <input
-          className="border p-2 mr-2"
-          placeholder="企業名"
-          value={companyName}
-          onChange={(e) => setCompanyName(e.target.value)}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <input
+            className="border p-3 rounded w-full"
+            placeholder="企業名"
+            value={companyName}
+            onChange={(e) => setCompanyName(e.target.value)}
+          />
 
-        <select
-          className="border p-2 mr-2"
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-        >
-          <option value="未応募">未応募</option>
-          <option value="ES提出">ES提出</option>
-          <option value="一次面接">一次面接</option>
-          <option value="最終面接">最終面接</option>
-          <option value="内定">内定</option>
-          <option value="落選">落選</option>
-        </select>
+          <select
+            className="border p-3 rounded w-full"
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+          >
+            <option value="未応募">未応募</option>
+            <option value="ES提出">ES提出</option>
+            <option value="一次面接">一次面接</option>
+            <option value="最終面接">最終面接</option>
+            <option value="内定">内定</option>
+            <option value="落選">落選</option>
+          </select>
 
-        <input
-          className="border p-2 mr-2"
-          type="date"
-          value={deadline}
-          onChange={(e) => setDeadline(e.target.value)}
-        />
+          <input
+            className="border p-3 rounded w-full"
+            type="date"
+            value={deadline}
+            onChange={(e) => setDeadline(e.target.value)}
+          />
 
-        <input
-          className="border p-2 mr-2 mt-2"
-          placeholder="企業マイページURL"
-          value={mypageUrl}
-          onChange={(e) => setMypageUrl(e.target.value)}
-        />
+          <input
+            className="border p-3 rounded w-full"
+            placeholder="企業マイページURL"
+            value={mypageUrl}
+            onChange={(e) => setMypageUrl(e.target.value)}
+          />
 
-        <button
-          className="border px-4 py-2 rounded"
-          onClick={addCompany}
-        >
-          追加
-        </button>
-      </div>
+          <input
+            className="border p-3 rounded w-full"
+            placeholder="ログインID"
+            value={loginId}
+            onChange={(e) => setLoginId(e.target.value)}
+          />
 
-      <div className="mt-6">
+          <input
+            className="border p-3 rounded w-full"
+            placeholder="ログインパスワード"
+            value={loginPassword}
+            onChange={(e) => setLoginPassword(e.target.value)}
+          />
+
+          <textarea
+            className="border p-3 rounded w-full md:col-span-2 lg:col-span-2"
+            placeholder="メモ"
+            value={memo}
+            onChange={(e) => setMemo(e.target.value)}
+          />
+
+          <button
+            className="bg-blue-600 text-white px-4 py-2 rounded w-full"
+            onClick={addCompany}
+          >
+            追加
+          </button>
+        </div>
+      </section>
+
+      <section className="mt-6">
         {companies.map((company) => (
           <CompanyCard
             key={company.id}
@@ -316,7 +341,7 @@ export default function Home() {
             onUpdate={updateCompany}
           />
         ))}
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }
